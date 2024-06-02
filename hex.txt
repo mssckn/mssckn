@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <system.h> /* 系統標準函示庫 */
+#include <io.h>     /* 系統I/O函示庫*/
+#include <unistd.h> /* 宣告usleep函數 */
+#include <altera_avalon_timer_regs.h> /* 宣告timer函數 */
+
+int a[10]={0x7E,0x0C,0xB6,0x9E,0xCC,0xDA,0xFA,0x0E,0xFE,0xDE,};
+
+int b[10]={0x7F,0x0D,0xB7,0x9F,0xCD,0xDB,0xFB,0x0F,0xFF,0xDF,};
+void SetupTimer(float fSec){
+    int CntValue;
+    /* 設定Timer計數時間 */
+    CntValue = (int )(TIMER_FREQ*fSec);
+    printf("cnt=%d\n",CntValue );
+    IOWR_ALTERA_AVALON_TIMER_PERIODL(  /* 對TIMER_PERIODL暫存器做寫入 */
+                          TIMER_BASE,  /* timer的基底位址 */
+                         (CntValue) & 0xffff);     /* 取出CntValue的低16bit, 寫入Timeout periodh register */
+    IOWR_ALTERA_AVALON_TIMER_PERIODH(  /* 對TIMER_PERIODH暫存器做寫入 */
+                          TIMER_BASE,  /* timer的基底位址 */
+                          (CntValue>>16) & 0xffff); /* 取出CntValue的高16bit, 寫入Timeout periodh register */
+}
+
+int main()/* C 主程式 */
+{
+  int i,j,k,n;
+  printf("Timer example!\n");
+  SetupTimer(0.01); /* 呼叫設定時間函數 */
+  IOWR_ALTERA_AVALON_TIMER_CONTROL( /* 對TIMER_CONTROL暫存器做寫入 */
+          TIMER_BASE,                                /* timer的基底位址 */
+          ALTERA_AVALON_TIMER_CONTROL_START_MSK |    /* 啟動位元 */
+          ALTERA_AVALON_TIMER_CONTROL_CONT_MSK);     /* 連續位元 */
+  IOWR(TIMER_BASE, 0, 0);   /* clear TO bit in status register */
+  while(1){
+      for(n=0;n<=9;n++){
+       for(k=0;k<=9;k++){
+        for(j=0;j<=9;j++){
+          for(i=0;i<=9;i++){
+
+
+    	 IOWR(HEX3_BASE,0,~a[n]);
+     	 IOWR(HEX2_BASE,0,~b[k]);
+     	 IOWR(HEX1_BASE,0,~a[j]);
+     	 IOWR(HEX_BASE,0,~a[i]);
+
+          while((IORD_ALTERA_AVALON_TIMER_STATUS(TIMER_BASE) & 0x01)==0x00); /* 讀取並判斷 TO位元 */
+          IOWR_ALTERA_AVALON_TIMER_STATUS( /* 對TIMER_STATUS暫存器做寫入 */
+                            TIMER_BASE, /* timer的基底位址 */
+                            0);   /* clear TO bit in status register */
+
+  }}}}}
+  return 0;
+}

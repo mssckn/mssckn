@@ -1,0 +1,45 @@
+#include <io.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <system.h>
+#include <unistd.h>
+
+void motorA_ctrl(bool dir_num,int duty);
+
+int main() {
+	  int i=0;
+	  bool s = 0;
+  printf("hello nios II\n");
+  while (1) {
+	  motorA_ctrl(s,150);
+	  printf("%d\n",s);
+	  i++;
+	  usleep(1000);
+	  if (i>1000)
+	  {	if (s)
+	  	  {
+		  	  s=0;
+	  	  }
+	  else {s=1;}
+		  i=0;
+
+
+	  }
+  }
+  return 0;
+}
+
+void motorA_ctrl(bool dir_num, int duty) {
+	int Q;
+	Q =duty-100;
+	IOWR(MOTORA_DUTY_BASE,0,duty);
+	IOWR(MOTORB_DUTY_BASE,0,Q);
+	if(dir_num){
+		IOWR(MOTORA_DIR_BASE,0,2);
+		IOWR(MOTORB_DIR_BASE,0,1);}
+	else {
+		IOWR(MOTORA_DIR_BASE,0,1);
+		IOWR(MOTORB_DIR_BASE,0,2);}
+}
